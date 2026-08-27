@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import io
 from decimal import Decimal
 
@@ -15,7 +12,7 @@ import matplotlib.pyplot as plt
 
 matplotlib.rcParams["font.family"] = "sans-serif"
 
-# ---------------- Dark theme (Catppuccin-ish) ----------------
+# ---------------- Dark theme (Catppuccin-ish, matching the original QSS) ----------------
 DARK_CSS = """
 <style>
 .stApp {
@@ -206,7 +203,7 @@ def build_figure(data, t_fit, popt):
 
 
 def main():
-    st.set_page_config(page_title="Nonlinear Kinetics Fit", layout="centered")
+    st.set_page_config(page_title="Nonlinear Kinetics Fit", layout="wide")
     st.markdown(DARK_CSS, unsafe_allow_html=True)
 
     if "data" not in st.session_state:
@@ -216,17 +213,14 @@ def main():
     if "loaded_filename" not in st.session_state:
         st.session_state.loaded_filename = None
 
-    st.title("Nonlinear Kinetics Fit")
-
-    top_col1, top_col2 = st.columns([1, 3])
-    with top_col1:
-        uploaded_file = st.file_uploader("Open CSV...", type=["csv"], label_visibility="collapsed")
-    with top_col2:
-        if st.session_state.loaded_filename:
-            st.markdown(f"<span style='font-size:15px'>{st.session_state.loaded_filename}</span>",
-                        unsafe_allow_html=True)
-        else:
-            st.markdown("<span style='font-size:15px'>No file loaded</span>", unsafe_allow_html=True)
+    header_col1, header_col2, header_col3 = st.columns([2, 1, 2])
+    with header_col1:
+        st.markdown("### Nonlinear Kinetics Fit")
+    with header_col2:
+        uploaded_file = st.file_uploader("Open CSV", type=["csv"], label_visibility="collapsed")
+    with header_col3:
+        fname = st.session_state.loaded_filename or "No file loaded"
+        st.markdown(f"<span style='font-size:14px'>{fname}</span>", unsafe_allow_html=True)
 
     if uploaded_file is not None and uploaded_file.name != st.session_state.loaded_filename:
         try:
@@ -249,78 +243,67 @@ def main():
     data = st.session_state.data
     n_points = len(data)
 
-    # ---------------- Sliders (n1 < n2, minimum gap of 3 points) ----------------
-    n1_col, n2_col = st.columns(2)
-    with n1_col:
-        n1 = st.slider("n1", min_value=1, max_value=n_points - 3,
+    # ---------------- Layout: plot on the left, controls + results on the right ----------------
+    plot_col, side_col = st.columns([2.2, 1], gap="large")
+
+    with side_col:
+        st.markdown("**Fit range**")
+        n1 = st.slider("Start point", min_value=1, max_value=n_points - 3,
                         value=st.session_state.get("n1", 1), key="n1_slider")
-    with n2_col:
-        n2 = st.slider("n2", min_value=4, max_value=n_points,
+        n2 = st.slider("End point", min_value=4, max_value=n_points,
                         value=st.session_state.get("n2", n_points), key="n2_slider")
 
-    # Enforce minimum gap of 3, mirroring the Qt on_slider_change logic
-    if n2 - n1 < 3:
-        if n1 != st.session_state.get("n1", 1):
-            n2 = min(n1 + 3, n_points)
-        else:
-            n1 = max(n2 - 3, 1)
+        # Enforce minimum gap of 3, mirroring the Qt on_slider_change logic
+        if n2 - n1 < 3:
+            if n1 != st.session_state.get("n1", 1):
+                n2 = min(n1 + 3, n_points)
+            else:
+                n1 = max(n2 - 3, 1)
 
-    st.session_state.n1 = n1
-    st.session_state.n2 = n2
+        st.session_state.n1 = n1
+        st.session_state.n2 = n2
 
-    st.markdown(f"<span class='status-hint'>n1 = {n1}   n2 = {n2}</span>", unsafe_allow_html=True)
+        try:
+            result = run_fit(data, n1, n2, st.session_state.last_popt)
+        except RuntimeError as e:
+            st.error(f"Fit failed for this range:\n\n{e}")
+            return
 
-    # ---------------- Fit ----------------
-    try:
-        result = run_fit(data, n1, n2, st.session_state.last_popt)
-    except RuntimeError as e:
-        st.error(f"Fit failed for this range:\n\n{e}")
-        return
+        st.session_state.last_popt = result["popt"]
 
-    st.session_state.last_popt = result["popt"]
-
-    # ---------------- Plot ----------------
-    fig = build_figure(data, result["t_fit"], result["popt"])
-    st.pyplot(fig)
-
-    # ---------------- Results card ----------------
-    st.markdown(make_html_results(result), unsafe_allow_html=True)
-
-    st.markdown(
-        f"<p class='status-hint'>Fit converged &nbsp; R\u00b2 = {result['r_squared']:.5f} "
-        f"&nbsp; (points {n1}\u2013{n2})</p>",
-        unsafe_allow_html=True,
-    )
-
-    # ---------------- Export buttons ----------------
-    plain_text = make_plain_text(result, n1, n2)
-
-    btn_col1, btn_col2, btn_col3 = st.columns(3)
-    with btn_col1:
-        st.download_button(
-            "Export Results...",
-            data=plain_text.encode("utf-8"),
-            file_name="fit_results.txt",
-            mime="text/plain",
+        st.markdown(make_html_results(result), unsafe_allow_html=True)
+        st.markdown(
+            f"<p class='status-hint'>Fit converged &nbsp; R\u00b2 = {result['r_squared']:.5f}</p>",
+            unsafe_allow_html=True,
         )
-    with btn_col2:
+
+        # ---------------- Export buttons ----------------
+        plain_text = make_plain_text(result, n1, n2)
+        fig = build_figure(data, result["t_fit"], result["popt"])
+
         png_buf = io.BytesIO()
         fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
-        st.download_button(
-            "Save Plot (PNG)...",
-            data=png_buf.getvalue(),
-            file_name="fit_plot.png",
-            mime="image/png",
-        )
-    with btn_col3:
-        svg_buf = io.BytesIO()
-        fig.savefig(svg_buf, format="svg", bbox_inches="tight")
-        st.download_button(
-            "Save Plot (SVG)...",
-            data=svg_buf.getvalue(),
-            file_name="fit_plot.svg",
-            mime="image/svg+xml",
-        )
+
+        b1, b2 = st.columns(2)
+        with b1:
+            st.download_button(
+                "Export Results",
+                data=plain_text.encode("utf-8"),
+                file_name="fit_results.txt",
+                mime="text/plain",
+                use_container_width=True,
+            )
+        with b2:
+            st.download_button(
+                "Save Plot (PNG)",
+                data=png_buf.getvalue(),
+                file_name="fit_plot.png",
+                mime="image/png",
+                use_container_width=True,
+            )
+
+    with plot_col:
+        st.pyplot(fig, use_container_width=True)
 
     plt.close(fig)
 
