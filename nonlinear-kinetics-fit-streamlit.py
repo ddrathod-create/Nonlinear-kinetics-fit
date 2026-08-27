@@ -215,7 +215,7 @@ def main():
 
     header_col1, header_col2, header_col3 = st.columns([2, 1, 2])
     with header_col1:
-        st.markdown("### Nonlinear Kinetics Fit")
+        st.markdown("## Nonlinear Kinetics Fit")
     with header_col2:
         uploaded_file = st.file_uploader("Open CSV", type=["csv"], label_visibility="collapsed")
     with header_col3:
