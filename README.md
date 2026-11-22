@@ -1,9 +1,6 @@
 # Nonlinear Kinetics Fit
 
-An app for the CHM 343 physical chemistry lab. It fits an exponential decay to absorbance vs. time data and reports the rate constant `k` and the time constant `τ`. It is a Python version of the course's Mathematica notebook, with a live slider so you can see how your choice of fit range affects the result.
-
-The app is written as a desktop app, but it is mainly meant to be used through a web interface.
-
+An app for the CHM 343 physical chemistry lab. It fits an exponential decay to absorbance vs. time data and reports the rate constant `k` and the time constant `τ`. 
 **Use it online:** https://nonlinear-kinetics-fit-djg7c9ibgjquszv42dn29s.streamlit.app/
 
 ## The model
@@ -19,7 +16,7 @@ A(t) = ΔA · exp(−k·t) + Aₑ
 
 ## Data file
 
-Two columns: time (s) and absorbance. The file should be tab-delimited with a header row. A stray trailing tab on each line is fine.
+Two columns: time (s) and absorbance. The file should be tab-delimited with a header row. 
 
 ## How to use
 
