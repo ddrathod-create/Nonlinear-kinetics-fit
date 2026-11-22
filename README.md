@@ -1,10 +1,11 @@
-# ΔT Analysis (Bomb Calorimetry)
+# Nonliner Kinetics Fit 
+ΔT Analysis (Bomb Calorimetry)
 
 An app for the CHM 343 physical chemistry lab. It determines ΔT from a bomb calorimetry temperature vs. time run by extrapolating the initial and final temperature drifts to a chosen time. It is a Python version of the course's Mathematica notebook, with live sliders so you can see how your choices affect the result.
 
 The app is written as a desktop app, but it is mainly meant to be used through a web interface.
 
-**Use it online:** [add your app link here]
+**Use it online:**  https://bomb-calorimetry-deltat-klkamv5ydjd9ztcjyguojj.streamlit.app/
 
 ## Data file
 
