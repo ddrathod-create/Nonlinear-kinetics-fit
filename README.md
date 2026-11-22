@@ -1,38 +1,38 @@
-# Nonliner Kinetics Fit 
-ΔT Analysis (Bomb Calorimetry)
+# Nonlinear Kinetics Fit
 
-An app for the CHM 343 physical chemistry lab. It determines ΔT from a bomb calorimetry temperature vs. time run by extrapolating the initial and final temperature drifts to a chosen time. 
+An app for the CHM 343 physical chemistry lab. It fits an exponential decay to absorbance vs. time data and reports the rate constant `k` and the time constant `τ`. It is a Python version of the course's Mathematica notebook, with a live slider so you can see how your choice of fit range affects the result.
 
-**Use it online:**  https://bomb-calorimetry-deltat-klkamv5ydjd9ztcjyguojj.streamlit.app/
+The app is written as a desktop app, but it is mainly meant to be used through a web interface.
+
+**Use it online:** https://nonlinear-kinetics-fit-djg7c9ibgjquszv42dn29s.streamlit.app/
+
+## The model
+
+```
+A(t) = ΔA · exp(−k·t) + Aₑ
+```
+
+- `ΔA` is the total change in absorbance.
+- `k` is the rate constant (s⁻¹).
+- `Aₑ` is the absorbance the curve levels off at.
+- `τ = 1/k` is the time constant (s).
 
 ## Data file
 
-Two columns: time (s) and temperature
+Two columns: time (s) and absorbance. The file should be tab-delimited with a header row. A stray trailing tab on each line is fine.
 
 ## How to use
 
 1. Load your data file.
-2. Adjust the four sliders (all in seconds):
-   - **tmin** is where the initial-period fit starts.
-   - **ti** is where the initial-period fit ends.
-   - **td** is the time at which ΔT is read.
-   - **tf** is where the final-period fit starts (it runs to the end of the data).
-3. The app fits a straight line to the initial period (tmin → ti) and another to the final period (tf → end). ΔT is the difference between the two lines at `td`.
-4. Read the results in the **ΔT Results** box: ΔT, Tᵢ, T_f, both slopes, Area₁ and Area₂.
-5. Export the results as a text file (it also records your slider values) and save the plot as an image.
-
-## What the plot shows
-
-- The data, with both fitted lines extended across the run.
-- Dotted vertical lines at `ti` and `tf`.
-- A red bracket at `td` showing ΔT.
-- Area 1 (blue) is the area between the data and Tᵢ from ti to td. Area 2 (orange) is the area between T_f and the data from td to tf. Choosing `td` so the two areas are equal is the usual way to pick it.
+2. Use the **n1** and **n2** sliders to choose which data points (by index) are included in the fit. The shaded band on the plot shows the selected range. The fit and results update live as you move them.
+3. Read the results in the **Fit Results** box: ΔA, k, Aₑ and τ, each with its uncertainty (±2 standard errors, roughly a 95% interval). R² for the selected range is also shown.
+4. Export the results as a text file and save the plot as an image.
 
 ## Notes
 
-- The sliders start at tmin = 80 s, ti = tmin + 280 s, td = ti + 80 s and tf = (end of run) − 400 s. Adjust them to suit your own run.
-- Temperatures and ΔT are labeled in °C. If your data is in another unit, change the labels in the code.
-- Each fit period needs at least 2 data points. If the sliders are too close together, the app tells you.
+- The first fit starts from the guesses ΔA = 0.1, k = 0.02 and Aₑ = 0.168. After that, each new fit starts from the previous result, as in the notebook.
+- At least 4 data points must be selected so the fit has enough data.
+- If a fit fails for some range, the app says so. Try a different range.
 - Results are shown in plain decimals, with no scientific notation.
 
 ## Running the desktop version (optional)
@@ -40,17 +40,15 @@ Two columns: time (s) and temperature
 You need Python 3 and these packages:
 
 ```
-pip install PyQt5 numpy pandas matplotlib
+pip install PyQt5 numpy pandas scipy matplotlib
 ```
 
 Then, in a terminal in the folder containing the file:
 
 ```
-python delta_t_analysis_app.py
+python kinetics_fit_app.py
 ```
 
 If you see `ModuleNotFoundError: No module named 'PyQt5'`, run the `pip install` command above.
 
-
-
-Thank you, Professor Wolf, for sharing the Mathematica notebook for bomb calorimetry ΔT analysis. This Python version was built from it!
+Thank you, Professor Wolf, for sharing the Mathematica notebook. This Python version was built from it!
