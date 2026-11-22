@@ -1,6 +1,7 @@
 # Nonlinear Kinetics Fit
 
 An app for the CHM 343 physical chemistry lab. It fits an exponential decay to absorbance vs. time data and reports the rate constant `k` and the time constant `τ`. 
+
 **Use it online:** https://nonlinear-kinetics-fit-djg7c9ibgjquszv42dn29s.streamlit.app/
 
 ## The model
